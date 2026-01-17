@@ -1,11 +1,656 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>给小婷的专属世界 💕</title>
+    <style>
+        :root {
+            --primary-color: #ff6b9d;
+            --secondary-color: #667eea;
+            --text-color: #495057;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #ff8fa3;
+            --secondary-color: #a18cd1;
+            --text-color: #f0f0f0;
+            --glass-bg: rgba(30, 30, 40, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #ffeef8 0%, #e8f4fd 50%, #f0f8ff 100%);
+            transition: background 1s ease;
+            color: var(--text-color);
+        }
+
+        body[data-theme="dark"] {
+            background: linear-gradient(135deg, #2d1b4e 0%, #1b1e44 100%);
+        }
+
+        /* 装饰背景 */
+        .bg-decoration { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+        .floating-heart {
+            position: absolute;
+            animation: floatHeart 15s infinite linear;
+            opacity: 0.6;
+        }
+
+        @keyframes floatHeart {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+
+        /* 通用玻璃拟态卡片 */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
+
+        /* 头部 */
+        .header { text-align: center; margin: 40px 0; animation: fadeInDown 1s ease-out; }
+        .main-title {
+            font-size: 2.8rem;
+            background: linear-gradient(45deg, #ff6b9d, #667eea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+        .main-title::after { content: '✨'; position: absolute; top: -10px; right: -25px; font-size: 0.5em; -webkit-text-fill-color: initial; animation: sparkle 2s infinite; }
+
+        /* 模式切换按钮 */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* 宠物展示区 */
+        .interaction-area { text-align: center; }
+        .main-pet-display { position: relative; height: 200px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+        .pet-emoji {
+            font-size: 8rem;
+            animation: breathe 3s ease-in-out infinite;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .pet-emoji:active { transform: scale(0.9); }
+
+        /* 状态条 */
+        .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
+        .status-item { background: rgba(255,255,255,0.3); padding: 15px; border-radius: 16px; position: relative; overflow: hidden; }
+        .status-bar { height: 6px; background: rgba(0,0,0,0.05); border-radius: 3px; margin-top: 8px; position: relative; }
+        .status-fill { height: 100%; border-radius: 3px; transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .status-value { font-weight: bold; font-size: 1.2rem; display: block; }
+        .status-label { font-size: 0.8rem; opacity: 0.8; }
+
+        /* 互动按钮 */
+        .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 15px; margin-top: 20px; }
+        .action-btn {
+            border: none;
+            background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+            padding: 15px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            font-size: 0.9rem;
+            color: #555;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .action-btn i { font-size: 1.8rem; display: block; margin-bottom: 5px; }
+        .action-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); background: white; }
+        .action-btn:active { transform: scale(0.95); }
+
+        /* 消息气泡 */
+        .message-box {
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(120deg, rgba(255,255,255,0.8), rgba(255,238,248,0.8));
+            border-radius: 18px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            border: 2px dashed var(--primary-color);
+        }
+        .message-text { font-size: 1.1rem; line-height: 1.6; color: #d63384; font-weight: 500; }
+
+        /* 功能卡片网格 */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .feature-card { cursor: pointer; text-align: center; }
+        .feature-icon { font-size: 3rem; margin-bottom: 15px; display: inline-block; transition: transform 0.3s; }
+        .feature-card:hover .feature-icon { transform: scale(1.2) rotate(10deg); }
+
+        /* 情书区域 */
+        .secret-area {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .secret-content {
+            display: none;
+            text-align: left;
+            margin-top: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            line-height: 1.8;
+            font-size: 1.05rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .reveal-btn {
+            background: rgba(255,255,255,0.25);
+            border: 1px solid white;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .reveal-btn:hover { background: white; color: #764ba2; }
+
+        /* 弹幕效果 */
+        .danmaku-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .danmaku-item {
+            position: absolute;
+            white-space: nowrap;
+            background: rgba(255,255,255,0.7);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            animation: drift linear forwards;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        @keyframes drift {
+            from { transform: translateX(100vw); }
+            to { transform: translateX(-100%); }
+        }
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes sparkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .main-title { font-size: 2rem; }
+            .status-grid { grid-template-columns: 1fr; gap: 10px; }
+            .status-item { display: flex; align-items: center; padding: 10px 20px; }
+            .status-bar { flex-grow: 1; margin: 0 15px; margin-top: 0; }
+            .action-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-decoration" id="bgDecoration"></div>
+<div class="danmaku-container" id="danmakuContainer"></div>
+
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="切换主题">☀️</button>
+
+<div class="container">
+    <header class="header">
+        <h1 class="main-title">给小婷的专属世界</h1>
+        <p style="color: var(--text-color); opacity: 0.8; margin-top: 10px;">每一个像素，都藏着我对你的喜欢</p>
+    </header>
+
+    <div class="glass-card" style="text-align: center;">
+        <p style="font-size: 1.1em; line-height: 1.8;">
+            王奕婷，这个小世界是我为你亲手敲下的代码。<br>
+            就像我对你的感情，没有Bug，只有无限循环的爱意。<br>
+            无论白天黑夜，我（和这个程序）都会一直陪着你。
+        </p>
+    </div>
+
+    <div class="glass-card interaction-area">
+        <div class="main-pet-display">
+            <div class="pet-emoji" id="mainPet" onclick="petInteraction()">🐱</div>
+        </div>
+
+        <h2 id="petName" style="color: var(--primary-color); margin-bottom: 5px;">小甜心猫咪</h2>
+        <p id="petMood" style="font-size: 0.9em; opacity: 0.7;">心情：想见你</p>
+
+        <div class="message-box">
+            <div class="message-text" id="message">嗨，小婷～ 我是你的专属小宠物。点击下面的按钮，让我们开始甜蜜的互动吧！</div>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-item">
+                <span class="status-label">❤️ 快乐值</span>
+                <div class="status-bar"><div class="status-fill" id="happiness-bar" style="width: 50%; background: #ff6b9d;"></div></div>
+                <span class="status-value" id="happiness-val">50%</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">💕 亲密度</span>
+                <div class="status-bar"><div class="status-fill" id="intimacy-bar" style="width: 30%; background: #ff9a9e;"></div></div>
+                <span class="status-value" id="intimacy-val">30%</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">⚡ 精力值</span>
+                <div class="status-bar"><div class="status-fill" id="energy-bar" style="width: 80%; background: #fecfef;"></div></div>
+                <span class="status-value" id="energy-val">80%</span>
+            </div>
+        </div>
+
+        <div class="action-grid">
+            <button class="action-btn" onclick="handleAction('feed')"><i>🍰</i>喂食</button>
+            <button class="action-btn" onclick="handleAction('pet')"><i>🤗</i>抚摸</button>
+            <button class="action-btn" onclick="handleAction('play')"><i>🎾</i>玩耍</button>
+            <button class="action-btn" onclick="handleAction('talk')"><i>💌</i>情话</button>
+            <button class="action-btn" onclick="handleAction('dress')"><i>👑</i>装扮</button>
+            <button class="action-btn" onclick="togglePet()"><i>🔄</i>换宠物</button>
+        </div>
+    </div>
+
+    <div class="features-grid">
+        <div class="glass-card feature-card" onclick="drawFortune()">
+            <span class="feature-icon">🏮</span>
+            <h3>今日运势签</h3>
+            <p style="font-size: 0.9rem; opacity: 0.7; margin-top: 10px;">看看今天属于我们的小确幸</p>
+        </div>
+
+        <div class="glass-card feature-card" onclick="showLoveCalculator()">
+            <span class="feature-icon">💝</span>
+            <h3>心动同步率</h3>
+            <p style="font-size: 0.9rem; opacity: 0.7; margin-top: 10px;">测试我们的心跳频率</p>
+        </div>
+
+        <div class="glass-card feature-card" onclick="showMemoryWall()">
+            <span class="feature-icon">📸</span>
+            <h3>美好回忆墙</h3>
+            <p style="font-size: 0.9rem; opacity: 0.7; margin-top: 10px;">点滴回忆，珍藏于心</p>
+        </div>
+    </div>
+
+    <div class="glass-card secret-area">
+        <h2>💕 藏在代码里的真心话</h2>
+        <p style="margin: 15px 0;">点击下方按钮，查收一封专属情书</p>
+        <button class="reveal-btn" onclick="revealSecret()">展开情书 💌</button>
+
+        <div class="secret-content" id="secretContent">
+            <h3 style="color: #fff; margin-bottom: 20px;">给我最特别的小婷：</h3>
+            <p>当你读到这封信的时候，我可能正在电脑屏幕的对面，想着你此刻的表情。会不会有一点点惊喜？一点点感动？还是那种温暖的笑容？</p>
+            <p>你知道吗？写这个程序的时候，我满脑子都是你。每一个按钮的颜色，都让我想起你最喜欢的色调；每一句对话，都承载着我对你的思念。</p>
+            <p>你就像是我生命中最美好的bug，一旦出现，就让我的整个世界都变得不一样。我愿意用无数个日夜，去调试、去优化，只为让这份感情运行得更加完美。</p>
+            <p>如果爱情是一段代码，那么你就是我永远不会注释掉的那一行。因为每一行都写着：我喜欢你，比昨天更多，却不及明天。</p>
+            <p style="text-align: right; margin-top: 30px; font-weight: bold;">—— 宁</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 纯代码音效引擎 (Web Audio API) ---
+    // 无需加载外部文件，直接生成可爱的“嘟嘟”声
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playTone(freq, type, duration) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playSound(type) {
+        switch(type) {
+            case 'happy': // 快乐的上行音
+                playTone(400, 'sine', 0.1);
+                setTimeout(() => playTone(600, 'sine', 0.2), 100);
+                break;
+            case 'success': // 叮咚
+                playTone(800, 'triangle', 0.1);
+                setTimeout(() => playTone(1200, 'sine', 0.4), 100);
+                break;
+            case 'pop': // 气泡声
+                playTone(300, 'sine', 0.1);
+                break;
+            case 'magic': // 魔法音效
+                [400, 500, 600, 800].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.3), i * 80));
+                break;
+        }
+    }
+
+    // --- 游戏逻辑 ---
+
+    // 初始化数据 (从本地存储读取或默认)
+    let gameState = JSON.parse(localStorage.getItem('xiaotingWorld_state')) || {
+        happiness: 50,
+        intimacy: 20,
+        energy: 80,
+        petType: 'cat',
+        theme: 'light'
+    };
+
+    const petData = {
+        cat: { icon: '🐱', name: '小甜心猫咪', color: '#ff6b9d' },
+        dog: { icon: '🐶', name: '忠诚小狗狗', color: '#667eea' },
+        rabbit: { icon: '🐰', name: '软萌小兔子', color: '#ff9a9e' }
+    };
+
+    const romanticMessages = [
+        "你是我每天醒来的动力，也是我睡前的最后念想。",
+        "今天的你，比昨天的你更可爱了一点点！",
+        "如果思念有声音，我的世界早已震耳欲聋。",
+        "想和你一起看星星，看月亮，看未来的每一天。",
+        "你不在的时候，时间过得好慢；你在的时候，时间不够用。"
+    ];
+
+    const fortunes = [
+        "上上签：今日宜想我，忌不开心。",
+        "大吉：你期待的一件好事即将发生！",
+        "甜蜜签：此时此刻，我也正在想你。",
+        "桃花签：你今天的魅力值爆表啦！",
+        "幸运签：微笑是今天的通行证。"
+    ];
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        initBackground();
+        updateUI();
+        applyTheme(gameState.theme);
+        startDanmaku();
+
+        // 自动恢复精力
+        setInterval(() => {
+            if (gameState.energy < 100) {
+                gameState.energy = Math.min(100, gameState.energy + 2);
+                saveState();
+                updateStatusBars();
+            }
+        }, 10000);
+    });
+
+    function saveState() {
+        localStorage.setItem('xiaotingWorld_state', JSON.stringify(gameState));
+    }
+
+    function updateUI() {
+        const pet = petData[gameState.petType];
+        document.getElementById('mainPet').textContent = pet.icon;
+        document.getElementById('petName').textContent = pet.name;
+        document.getElementById('petName').style.color = pet.color;
+        updateStatusBars();
+    }
+
+    function updateStatusBars() {
+        document.getElementById('happiness-bar').style.width = gameState.happiness + '%';
+        document.getElementById('happiness-val').textContent = gameState.happiness + '%';
+
+        document.getElementById('intimacy-bar').style.width = gameState.intimacy + '%';
+        document.getElementById('intimacy-val').textContent = gameState.intimacy + '%';
+
+        document.getElementById('energy-bar').style.width = gameState.energy + '%';
+        document.getElementById('energy-val').textContent = gameState.energy + '%';
+
+        // 更新心情文本
+        let mood = '平静';
+        if (gameState.happiness > 80) mood = '超开心！';
+        else if (gameState.happiness > 50) mood = '美滋滋';
+        else if (gameState.energy < 30) mood = '有点累困困';
+        document.getElementById('petMood').textContent = `心情：${mood}`;
+    }
+
+    // 互动处理
+    function handleAction(type) {
+        let msg = "";
+        let sound = "pop";
+
+        // 精力检查
+        if (gameState.energy < 10 && type !== 'feed') {
+            showMessage("小宝贝累了，先喂点好吃的吧～");
+            playSound('pop');
+            return;
+        }
+
+        switch(type) {
+            case 'feed':
+                gameState.energy = Math.min(100, gameState.energy + 20);
+                gameState.happiness = Math.min(100, gameState.happiness + 5);
+                msg = "啊呜～ 真好吃！充满了能量！";
+                sound = "happy";
+                createParticles('🍰');
+                break;
+            case 'pet':
+                gameState.intimacy = Math.min(100, gameState.intimacy + 2);
+                gameState.happiness = Math.min(100, gameState.happiness + 5);
+                msg = "呼噜呼噜～ 最喜欢被你摸摸头了。";
+                sound = "pop";
+                createParticles('❤️');
+                break;
+            case 'play':
+                gameState.energy = Math.max(0, gameState.energy - 15);
+                gameState.happiness = Math.min(100, gameState.happiness + 10);
+                msg = "太好玩啦！和你在一起最开心！";
+                sound = "happy";
+                createParticles('🎉');
+                break;
+            case 'talk':
+                gameState.intimacy = Math.min(100, gameState.intimacy + 5);
+                msg = romanticMessages[Math.floor(Math.random() * romanticMessages.length)];
+                sound = "success";
+                createParticles('💬');
+                break;
+            case 'dress':
+                gameState.happiness = Math.min(100, gameState.happiness + 5);
+                msg = "我是不是变得更可爱了？嘻嘻～";
+                sound = "magic";
+                createParticles('✨');
+                break;
+        }
+
+        showMessage(msg);
+        playSound(sound);
+        saveState();
+        updateStatusBars();
+
+        // 动画反馈
+        const petEl = document.getElementById('mainPet');
+        petEl.style.transform = 'scale(1.2) rotate(10deg)';
+        setTimeout(() => petEl.style.transform = 'scale(1) rotate(0deg)', 200);
+    }
+
+    function togglePet() {
+        const types = Object.keys(petData);
+        let currentIdx = types.indexOf(gameState.petType);
+        let nextIdx = (currentIdx + 1) % types.length;
+        gameState.petType = types[nextIdx];
+        updateUI();
+        saveState();
+        playSound('magic');
+        showMessage(`变身！现在我是${petData[gameState.petType].name}啦～`);
+    }
+
+    function showMessage(text) {
+        const el = document.getElementById('message');
+        el.style.opacity = 0;
+        setTimeout(() => {
+            el.textContent = text;
+            el.style.opacity = 1;
+        }, 200);
+    }
+
+    function createParticles(char) {
+        const petRect = document.getElementById('mainPet').getBoundingClientRect();
+        for(let i=0; i<5; i++) {
+            const p = document.createElement('div');
+            p.textContent = char;
+            p.style.position = 'fixed';
+            p.style.left = (petRect.left + petRect.width/2) + 'px';
+            p.style.top = (petRect.top + petRect.height/2) + 'px';
+            p.style.fontSize = '20px';
+            p.style.pointerEvents = 'none';
+            p.style.transition = 'all 1s ease-out';
+            p.style.zIndex = 999;
+            document.body.appendChild(p);
+
+            // 随机发散动画
+            setTimeout(() => {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 50 + Math.random() * 50;
+                p.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist - 50}px) scale(0)`;
+                p.style.opacity = 0;
+            }, 10);
+
+            setTimeout(() => p.remove(), 1000);
+        }
+    }
+
+    // --- 特殊功能 ---
+    function drawFortune() {
+        const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+        alert(`🎋 今日运势 🎋\n\n${fortune}`);
+        playSound('success');
+    }
+
+    function showLoveCalculator() {
+        // 假装计算，实际上根据亲密度显示
+        playSound('magic');
+        let score = 80 + Math.floor(gameState.intimacy / 5);
+        if (score > 100) score = 100;
+        alert(`💓 心动计算结果 💓\n\n我们的心动同步率是：${score}%\n\n评语：天生一对，代码都拆不散！`);
+    }
+
+    function showMemoryWall() {
+        alert("📸 记忆相册\n\n这里预留给我们未来的照片墙...\n(每一张照片我都想好了放什么)");
+    }
+
+    function revealSecret() {
+        const content = document.getElementById('secretContent');
+        const btn = document.querySelector('.reveal-btn');
+        content.style.display = 'block';
+        content.style.animation = 'fadeInDown 1s ease';
+        btn.style.display = 'none';
+        playSound('magic');
+        // 滚动到信件
+        setTimeout(() => content.scrollIntoView({behavior: "smooth"}), 100);
+    }
+
+    // --- 主题与背景 ---
+    function toggleTheme() {
+        gameState.theme = gameState.theme === 'light' ? 'dark' : 'light';
+        applyTheme(gameState.theme);
+        saveState();
+    }
+
+    function applyTheme(theme) {
+        const body = document.body;
+        const btn = document.querySelector('.theme-toggle');
+        body.setAttribute('data-theme', theme);
+        btn.textContent = theme === 'light' ? '☀️' : '🌙';
+
+        // 背景装饰切换
+        const bg = document.getElementById('bgDecoration');
+        bg.innerHTML = ''; // 清空旧的
+        if (theme === 'light') {
+            createFloatingElements(['💕', '🌸', '☁️'], 15);
+        } else {
+            createFloatingElements(['✨', '⭐', '🌙'], 20);
+        }
+    }
+
+    function initBackground() {
+        // 默认初始化在 applyTheme 中处理
+    }
+
+    function createFloatingElements(chars, count) {
+        const container = document.getElementById('bgDecoration');
+        for (let i = 0; i < count; i++) {
+            const el = document.createElement('div');
+            el.className = 'floating-heart';
+            el.textContent = chars[Math.floor(Math.random() * chars.length)];
+            el.style.left = Math.random() * 100 + '%';
+            el.style.animationDuration = (10 + Math.random() * 10) + 's';
+            el.style.animationDelay = (Math.random() * 5) + 's';
+            el.style.fontSize = (10 + Math.random() * 20) + 'px';
+            container.appendChild(el);
+        }
+    }
+
+    // --- 漂流弹幕 ---
+    function startDanmaku() {
+        const container = document.getElementById('danmakuContainer');
+        const texts = ["想你了", "小婷最可爱", "今天要开心哦", "你是我的唯一", "💕", "按时吃饭", "记得喝水"];
+
+        setInterval(() => {
+            if (document.hidden) return; // 页面不可见时不生成
+
+            const el = document.createElement('div');
+            el.className = 'danmaku-item';
+            el.textContent = texts[Math.floor(Math.random() * texts.length)];
+
+            // 随机位置和速度
+            const top = 10 + Math.random() * 80;
+            const duration = 8 + Math.random() * 10;
+
+            el.style.top = top + '%';
+            el.style.animationDuration = duration + 's';
+
+            container.appendChild(el);
+
+            // 动画结束后移除
+            setTimeout(() => el.remove(), duration * 1000);
+        }, 2000);
+    }
+
+    // 宠物交互点击
+    function petInteraction() {
+        handleAction('pet');
+    }
+
+</script>
+</body>
 </html>
